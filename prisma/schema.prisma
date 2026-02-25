@@ -6,11 +6,12 @@
 
 generator client {
   provider = "prisma-client-js"
+  
 }
 
 datasource db {
   provider = "postgresql"
-  // Remove the url line completely
+ url      = env("DATABASE_URL")
 }
 
 model User {
@@ -20,5 +21,37 @@ model User {
   lastName     String   @db.VarChar(100)
   passwordHash String   @db.VarChar(255)
   createdAt    DateTime @default(now())
+
   updatedAt    DateTime @updatedAt
+}
+
+model Blog {
+  id          String   @id @default(uuid()) @db.Uuid()
+  title       String   @db.VarChar(255)
+  slug        String   @unique @db.VarChar(255)
+  authorName  String   @db.VarChar(255)
+  blogContent String   @db.Text()
+  isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId String   @db.Uuid()
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+}
+
+model Category {
+  id          String   @id @default(uuid()) @db.Uuid()
+  name        String   @db.VarChar(100)
+  slug        String   @unique @db.VarChar(255)
+  description String   @db.Text()
+  imageUrl    String   @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parentId      String?    @db.Uuid()
+  parent        Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: Cascade)
+  subcategories Category[] @relation("CategoryToCategory")
+
+  blogs Blog[]
 }
